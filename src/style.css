@@ -1,0 +1,36 @@
+html {
+    --background-color: #212a2e;
+    --text-color: #F7F8F8;
+    --link-color: #828fff;
+}
+body {
+    background: var(--background-color);
+    color: var(--text-color);
+}
+
+a {
+    color: var(--link-color);
+}
+
+a:hover {
+    text-decoration: underline;
+    filter: brightness(80%);
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+
+  z-index: 9;
+  border: 1px;
+  background: var(--background-color);
+  opacity:0.8;
+  width: 100%;
+  height: 20px;
+  padding: 0px;
+}
+
+main {
+  margin-bottom: 20px;
+  padding: 2px;
+}

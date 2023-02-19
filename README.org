@@ -1,0 +1,7 @@
+* Jicho Chibi
+
+Replacement for: [[https://github.com/Atreyagaurav/jisho-chibi]]
+
+Written in Rust, hoping it'll be faster and secure, and compiled.
+
+The GUI in rust is hard. But it might be worth it. PyQt solution got messed up on Qt update. Have yet to add many old features.

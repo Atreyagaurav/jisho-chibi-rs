@@ -1,0 +1,12 @@
+[package]
+name = "jisho-chibi"
+version = "0.1.0"
+edition = "2018"
+description = "Simple Jisho Application"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dioxus = { version = "0.1.8", features = ["desktop"] }
+jisho = "0.1.5"
+
