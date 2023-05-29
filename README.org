@@ -3,3 +3,5 @@ I use https://jisho.org/ a lot for japanese words searching and based on this [[
 
 I wrote it in [[https://github.com/Atreyagaurav/jisho-chibi][PyQt using the Qt5WebEngine]] but the dependency problem was a bit too much and it kept breaking. So I've re-written it in rust.
 
+* Screenshots
+[[images/screenshot.png]]

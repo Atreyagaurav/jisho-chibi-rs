@@ -14,7 +14,7 @@ build() {
 
 package() {
     cd "$srcdir"
-    mkdir -p "$pkgdir/usr/bin"
+    mkdir -p "$pkgdir/usr/bin" "$pkgdir/usr/share/applications/"
     cp "../target/release/${pkgname}" "$pkgdir/usr/bin/${pkgname}"
-    chmod u+s "$pkgdir/usr/bin/${pkgname}"
+    cp "../jisho-chibi.desktop" "$pkgdir/usr/share/applications/"
 }
