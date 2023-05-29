@@ -1,0 +1,5 @@
+* Introduction
+I use https://jisho.org/ a lot for japanese words searching and based on this [[https://jisho.org/forum/54fefc1f6e73340b1f160000-is-there-any-kind-of-search-api][discussion]], there is some sort of in progress API. So, this is a UI that uses the API to show the word and meanings for quick search while working on or reading other stuffs.
+
+I wrote it in [[https://github.com/Atreyagaurav/jisho-chibi][PyQt using the Qt5WebEngine]] but the dependency problem was a bit too much and it kept breaking. So I've re-written it in rust.
+

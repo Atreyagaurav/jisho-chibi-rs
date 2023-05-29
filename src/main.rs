@@ -7,8 +7,8 @@ use serde_json::Value;
 
 pub fn main() -> iced::Result {
     let mut settings = Settings::default();
-    settings.window.size = (200, 230);
-    settings.window.resizable = false;
+    settings.window.size = (300, 200);
+    settings.window.resizable = true;
     settings.default_text_size = 12.0;
     settings.default_font = Some(include_bytes!("../fonts/ipag.ttf"));
     JishoChibi::run(settings.clone())
@@ -184,7 +184,7 @@ impl Sandbox for JishoChibi {
         ]
         .padding(1)
         .align_items(Alignment::Center)
-        .width(195)
+        .width(300)
         .into()
     }
 }
