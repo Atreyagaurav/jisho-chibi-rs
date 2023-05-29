@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use iced::widget::{button, column, row, scrollable, text, text_input};
-use iced::{Alignment, Element, Sandbox, Settings};
+use iced::{theme::Theme, Alignment, Element, Sandbox, Settings};
 use reqwest;
 use serde_json::Value;
 
@@ -148,6 +148,10 @@ impl Sandbox for JishoChibi {
 
     fn title(&self) -> String {
         String::from("Jisho Chibi")
+    }
+
+    fn theme(&self) -> Theme {
+        Theme::Dark
     }
 
     fn update(&mut self, message: Message) {
