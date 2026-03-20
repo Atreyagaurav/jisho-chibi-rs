@@ -1,17 +1,26 @@
-use std::collections::HashMap;
-
-use iced::widget::{button, column, row, scrollable, text, text_input};
-use iced::{theme::Theme, Alignment, Element, Sandbox, Settings};
+use iced::clipboard::read_primary;
+use iced::time::{self, Duration};
+use iced::widget::{button, column, row, scrollable, text, text_input, toggler};
+use iced::window;
+use iced::{theme::Theme, Alignment, Element, Settings, Subscription, Task};
 use reqwest;
 use serde_json::Value;
+use std::collections::HashMap;
 
 pub fn main() -> iced::Result {
     let mut settings = Settings::default();
-    settings.window.size = (300, 200);
-    settings.window.resizable = true;
-    settings.default_text_size = 12.0;
-    settings.default_font = Some(include_bytes!("../fonts/ipag.ttf"));
-    JishoChibi::run(settings.clone())
+    settings.default_text_size = 12.into();
+
+    let mut window = window::Settings::default();
+    window.size = iced::Size::new(300.0, 200.0);
+    iced::application(JishoChibi::new, JishoChibi::update, JishoChibi::view)
+        .settings(settings)
+        .window(window)
+        .font(include_bytes!("../fonts/ipag.ttf"))
+        .title(JishoChibi::title)
+        .theme(JishoChibi::theme)
+        .subscription(JishoChibi::subscription)
+        .run()
 }
 
 struct JishoMeaning {
@@ -109,7 +118,9 @@ fn search(text: &str) -> Result<Vec<JishoWord>, reqwest::Error> {
     Ok(result)
 }
 
+#[derive(Default)]
 struct JishoChibi {
+    watching: bool,
     current_word: String,
     meanings: Vec<JishoWord>,
 }
@@ -118,16 +129,17 @@ struct JishoChibi {
 enum Message {
     InputChanged(String),
     SearchPressed,
-    NextClicked,
-    PreviousClicked,
-    SyncClicked,
+    WatchMode(bool),
+    CheckClipboard,
+    ClipChanged(String),
+    // NextClicked,
+    // PreviousClicked,
 }
 
-impl Sandbox for JishoChibi {
-    type Message = Message;
-
+impl JishoChibi {
     fn new() -> Self {
         Self {
+            watching: false,
             current_word: "".into(),
             meanings: vec![JishoWord {
                 word: "Search 分".into(),
@@ -154,7 +166,7 @@ impl Sandbox for JishoChibi {
         Theme::Dark
     }
 
-    fn update(&mut self, message: Message) {
+    fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::SearchPressed => {
                 if !self.current_word.trim().is_empty() {
@@ -164,31 +176,53 @@ impl Sandbox for JishoChibi {
             Message::InputChanged(inp) => {
                 self.current_word = inp;
             }
+            Message::ClipChanged(inp) => {
+                if inp != self.current_word {
+                    self.current_word = inp;
+                    return Task::done(Message::SearchPressed);
+                }
+            }
+            Message::WatchMode(b) => {
+                self.watching = b;
+            }
+            Message::CheckClipboard if self.watching => {
+                return read_primary().then(|r| match r {
+                    Some(txt) => return Task::perform(async { txt }, Message::ClipChanged),
+                    _ => Task::none(),
+                })
+            }
             _ => (),
         }
+
+        Task::none()
     }
 
-    fn view(&self) -> Element<Message> {
+    fn view(&'_ self) -> Element<'_, Message> {
         column![
             row![
                 text_input("Word", &self.current_word)
                     .on_input(Message::InputChanged)
                     .on_submit(Message::SearchPressed),
                 button("Search").on_press(Message::SearchPressed),
+                toggler(self.watching).on_toggle(Message::WatchMode),
             ],
             scrollable(
                 column(
                     self.meanings
                         .iter()
-                        .map(|m| text(&m.to_text()).into())
-                        .collect()
+                        .map(|m| text(m.to_text()).into())
+                        .collect::<Vec<Element<_>>>()
                 )
                 .padding(5)
             )
         ]
         .padding(1)
-        .align_items(Alignment::Center)
+        .align_x(Alignment::Center)
         .width(300)
         .into()
+    }
+
+    fn subscription(&self) -> Subscription<Message> {
+        time::every(Duration::from_millis(600)).map(|_| Message::CheckClipboard)
     }
 }
