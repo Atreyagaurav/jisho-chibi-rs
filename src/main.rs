@@ -199,13 +199,20 @@ impl JishoChibi {
 
     fn view(&'_ self) -> Element<'_, Message> {
         column![
-            row![
-                text_input("Word", &self.current_word)
-                    .on_input(Message::InputChanged)
-                    .on_submit(Message::SearchPressed),
-                button("Search").on_press(Message::SearchPressed),
-                toggler(self.watching).on_toggle(Message::WatchMode),
-            ],
+            if self.watching {
+                row![
+                    text_input("Word", &self.current_word),
+                    toggler(self.watching).on_toggle(Message::WatchMode),
+                ]
+            } else {
+                row![
+                    text_input("Word", &self.current_word)
+                        .on_input(Message::InputChanged)
+                        .on_submit(Message::SearchPressed),
+                    button("Search").on_press(Message::SearchPressed),
+                    toggler(self.watching).on_toggle(Message::WatchMode),
+                ]
+            },
             scrollable(
                 column(
                     self.meanings
