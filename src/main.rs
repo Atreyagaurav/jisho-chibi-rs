@@ -40,10 +40,16 @@ struct JishoWord {
 }
 
 impl JishoWord {
-    fn view(&self) -> Rich<'_, String, Message> {
+    fn view(&self, curr: bool) -> Rich<'_, String, Message> {
         let mut spans = vec![
             Span::new(" * ").size(14),
-            Span::new(&self.word).color(colors::WORD).size(14),
+            Span::new(&self.word)
+                .color(if curr {
+                    colors::WORD
+                } else {
+                    colors::WORD_DERIVATIVE
+                })
+                .size(14),
             Span::new(" (").size(14),
             Span::new(&self.reading).color(colors::READING).size(16),
             Span::new(")\n").size(14),
@@ -258,7 +264,7 @@ impl JishoChibi {
                 column(
                     self.meanings
                         .iter()
-                        .map(|m| m.view().into())
+                        .map(|m| m.view(m.word == self.current_word).into())
                         .collect::<Vec<Element<_>>>()
                 )
                 .spacing(5)
