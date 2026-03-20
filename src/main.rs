@@ -1,11 +1,16 @@
 use iced::clipboard::read_primary;
 use iced::time::{self, Duration};
-use iced::widget::{button, column, row, scrollable, text, text_input, toggler};
+use iced::widget::{
+    button, column, container, row, scrollable,
+    text::{Rich, Span},
+    text_input, tooltip,
+};
 use iced::window;
 use iced::{theme::Theme, Alignment, Element, Settings, Subscription, Task};
 use reqwest;
 use serde_json::Value;
 use std::collections::HashMap;
+mod colors;
 
 pub fn main() -> iced::Result {
     let mut settings = Settings::default();
@@ -35,6 +40,32 @@ struct JishoWord {
 }
 
 impl JishoWord {
+    fn view(&self) -> Rich<'_, String, Message> {
+        let mut spans = vec![
+            Span::new(" * ").size(14),
+            Span::new(&self.word).color(colors::WORD).size(14),
+            Span::new(" (").size(14),
+            Span::new(&self.reading).color(colors::READING).size(16),
+            Span::new(")\n").size(14),
+        ];
+        self.meanings.iter().enumerate().for_each(|(i, m)| {
+            spans.push(Span::new(format!("  {:2}. ", i + 1)));
+            if let [a, rest @ ..] = m.tags.as_slice() {
+                spans.push(Span::new("["));
+                spans.push(Span::new(a).color(colors::TAGS));
+                for t in rest {
+                    spans.push(Span::new("; "));
+                    spans.push(Span::new(t).color(colors::TAGS));
+                }
+                spans.push(Span::new("] "));
+            }
+            spans.push(Span::new(&m.meaning).color(colors::MEANING));
+            spans.push(Span::new("\n"));
+        });
+        Rich::with_spans(spans).font(iced::font::Font::MONOSPACE)
+    }
+
+    #[allow(unused)]
     fn to_text(&self) -> String {
         let mut text = String::new();
         text.push_str(&format!("* {} ({})\n", self.word, self.reading));
@@ -129,7 +160,7 @@ struct JishoChibi {
 enum Message {
     InputChanged(String),
     SearchPressed,
-    WatchMode(bool),
+    WatchMode,
     CheckClipboard,
     ClipChanged(String),
     // NextClicked,
@@ -182,8 +213,8 @@ impl JishoChibi {
                     return Task::done(Message::SearchPressed);
                 }
             }
-            Message::WatchMode(b) => {
-                self.watching = b;
+            Message::WatchMode => {
+                self.watching = !self.watching;
             }
             Message::CheckClipboard if self.watching => {
                 return read_primary().then(|r| match r {
@@ -201,25 +232,36 @@ impl JishoChibi {
         column![
             if self.watching {
                 row![
+                    tooltip(
+                        button("X").on_press(Message::WatchMode),
+                        "End Sync with Selection",
+                        tooltip::Position::Top
+                    )
+                    .style(container::rounded_box),
                     text_input("Word", &self.current_word),
-                    toggler(self.watching).on_toggle(Message::WatchMode),
                 ]
             } else {
                 row![
+                    tooltip(
+                        button("A").on_press(Message::WatchMode),
+                        "Sync from Selection",
+                        tooltip::Position::Top
+                    )
+                    .style(container::rounded_box),
                     text_input("Word", &self.current_word)
                         .on_input(Message::InputChanged)
                         .on_submit(Message::SearchPressed),
                     button("Search").on_press(Message::SearchPressed),
-                    toggler(self.watching).on_toggle(Message::WatchMode),
                 ]
             },
             scrollable(
                 column(
                     self.meanings
                         .iter()
-                        .map(|m| text(m.to_text()).into())
+                        .map(|m| m.view().into())
                         .collect::<Vec<Element<_>>>()
                 )
+                .spacing(5)
                 .padding(5)
             )
         ]
